@@ -8,6 +8,6 @@ spring:
     config:
       server:
         git:
-          uri: https://github.com/logitrack-devs/config-ms.git
+          uri: https://github.com/logictrack-devs/config-ms.git
           default-label: developer
           clone-on-start: true
