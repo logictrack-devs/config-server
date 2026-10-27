@@ -11,3 +11,6 @@ spring:
           uri: https://github.com/logictrack-devs/config-ms.git
           default-label: developer
           clone-on-start: true
+          force-pull: true
+          timeout: 10
+          delete-untracked-branches: true
