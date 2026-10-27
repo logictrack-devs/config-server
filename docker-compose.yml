@@ -7,7 +7,6 @@ services:
     container_name: mysql-logitrack
     environment:
       MYSQL_ROOT_PASSWORD: root
-      # Ya no va MYSQL_DATABASE acá porque el init.sql crea las 3 juntas
     ports:
       - "3306:3306"
     volumes:
@@ -20,8 +19,12 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
 
-  # 2. SERVIDOR DE CONFIGURACIÓN (Arranca al estar lista la BD)
+  # 2. SERVIDOR DE CONFIGURACIÓN
   config-server:
     build:
       context: .
@@ -33,6 +36,10 @@ services:
         condition: service_healthy
     networks:
       - logitrack-net
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'
 
   # 3. SEGURIDAD (8080)
   security-service:
@@ -48,6 +55,10 @@ services:
         condition: service_started
     networks:
       - logitrack-net
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
 
   # 4. ENVÍOS (8081)
   shipment-service:
@@ -63,6 +74,10 @@ services:
         condition: service_started
     networks:
       - logitrack-net
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
 
   # 5. REPARTIDORES (8082)
   courier-service:
@@ -78,6 +93,10 @@ services:
         condition: service_started
     networks:
       - logitrack-net
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
 
 volumes:
   mysql_data:
