@@ -8,6 +8,9 @@ spring:
     config:
       server:
         git:
-          uri: https://github.com/logitrack-devs/config-ms.git
+          uri: https://github.com/logictrack-devs/config-ms.git
           default-label: developer
           clone-on-start: true
+          force-pull: true          # siempre trae el último commit de la rama
+          timeout: 10               # segundos de espera al clonar/fetchear
+          delete-untracked-branches: true
