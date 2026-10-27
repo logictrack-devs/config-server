@@ -1,0 +1,87 @@
+version: '3.8'
+
+services:
+  # 1. BASE DE DATOS UNIFICADA
+  mysql-db:
+    image: mysql:8.4
+    container_name: mysql-logitrack
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      # Ya no va MYSQL_DATABASE acá porque el init.sql crea las 3 juntas
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - logitrack-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # 2. SERVIDOR DE CONFIGURACIÓN (Arranca al estar lista la BD)
+  config-server:
+    build:
+      context: .
+    container_name: logitrack-config-server
+    ports:
+      - "8888:8888"
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+    networks:
+      - logitrack-net
+
+  # 3. SEGURIDAD (8080)
+  security-service:
+    build:
+      context: ../security-service
+    container_name: logitrack-security
+    ports:
+      - "8080:8080"
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+      config-server:
+        condition: service_started
+    networks:
+      - logitrack-net
+
+  # 4. ENVÍOS (8081)
+  shipment-service:
+    build:
+      context: ../shipment-service
+    container_name: logitrack-shipment
+    ports:
+      - "8081:8081"
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+      config-server:
+        condition: service_started
+    networks:
+      - logitrack-net
+
+  # 5. REPARTIDORES (8082)
+  courier-service:
+    build:
+      context: ../courier-service
+    container_name: logitrack-courier
+    ports:
+      - "8082:8082"
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+      config-server:
+        condition: service_started
+    networks:
+      - logitrack-net
+
+volumes:
+  mysql_data:
+
+networks:
+  logitrack-net:
+    driver: bridge
