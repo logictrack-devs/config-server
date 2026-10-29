@@ -5,8 +5,7 @@ services:
   mysql-db:
     image: mysql:8.4
     container_name: mysql-logitrack
-    environment:
-      MYSQL_ROOT_PASSWORD: root
+    env_file: ./.env # Carga MYSQL_ROOT_PASSWORD desde el .env del config-server
     ports:
       - "3306:3306"
     volumes:
@@ -15,8 +14,9 @@ services:
     networks:
       - logitrack-net
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
-      interval: 5s
+      # Se usa la variable de entorno para no dejar la contraseña hardcodeada
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
       timeout: 5s
       retries: 10
     deploy:
@@ -29,6 +29,7 @@ services:
     build:
       context: .
     container_name: logitrack-config-server
+    env_file: ./.env
     ports:
       - "8888:8888"
     depends_on:
@@ -36,6 +37,12 @@ services:
         condition: service_healthy
     networks:
       - logitrack-net
+    healthcheck:
+      # CRÍTICO: Este healthcheck garantiza que Spring Boot ya levantó el puerto 8888
+      test: ["CMD", "wget", "-qO-", "http://localhost:8888/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 6
     deploy:
       resources:
         limits:
@@ -46,13 +53,14 @@ services:
     build:
       context: ../security-service
     container_name: logitrack-security
+    env_file: ../security-service/.env
     ports:
       - "8080:8080"
     depends_on:
       mysql-db:
         condition: service_healthy
       config-server:
-        condition: service_started
+        condition: service_healthy # CRÍTICO: Cambiado de service_started a service_healthy
     networks:
       - logitrack-net
     deploy:
@@ -65,13 +73,14 @@ services:
     build:
       context: ../shipment-service
     container_name: logitrack-shipment
+    env_file: ../shipment-service/.env
     ports:
       - "8081:8081"
     depends_on:
       mysql-db:
         condition: service_healthy
       config-server:
-        condition: service_started
+        condition: service_healthy # CRÍTICO: Cambiado a service_healthy
     networks:
       - logitrack-net
     deploy:
@@ -84,13 +93,14 @@ services:
     build:
       context: ../courier-service
     container_name: logitrack-courier
+    env_file: ../courier-service/.env
     ports:
       - "8082:8082"
     depends_on:
       mysql-db:
         condition: service_healthy
       config-server:
-        condition: service_started
+        condition: service_healthy # CRÍTICO: Cambiado a service_healthy
     networks:
       - logitrack-net
     deploy:
