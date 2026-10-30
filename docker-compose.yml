@@ -7,7 +7,7 @@ services:
     container_name: mysql-logitrack
     env_file: ./.env # Carga MYSQL_ROOT_PASSWORD desde el .env del config-server
     ports:
-      - "3306:3306"
+      - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
