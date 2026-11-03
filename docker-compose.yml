@@ -137,6 +137,33 @@ services:
       resources:
         limits:
           cpus: '2.0'
+  # 6. API GATEWAY (8066)
+  api-gateway:
+    build:
+      context: ../api-gateway
+    container_name: logitrack-gateway
+    restart: on-failure
+    mem_limit: 512m
+    ports:
+      - "8066:8066"
+    environment:
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=70"
+      CONFIG_SERVER_URL: "http://config-server:8888"
+      EUREKA_URL: "http://eureka-server:8065/eureka/"
+    depends_on:
+      config-server:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+      security-service:
+        condition: service_started
+      courier-service:
+        condition: service_started
+      shipment-service:
+        condition: service_started
+    networks:
+      - logitrack-net
+
 
 volumes:
   mysql_data:
