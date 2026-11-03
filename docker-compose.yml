@@ -100,6 +100,8 @@ services:
       context: ../shipment-service
     container_name: logitrack-shipment
     env_file: ../shipment-service/.env
+    environment:
+      EUREKA_URL: "http://eureka-server:8065/eureka/"
     ports:
       - "8081:8081"
     depends_on:
@@ -107,6 +109,8 @@ services:
         condition: service_healthy
       config-server:
         condition: service_healthy # CRÍTICO: Cambiado a service_healthy
+      eureka-server:
+        condition: service_healthy
     networks:
       - logitrack-net
     deploy:
