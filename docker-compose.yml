@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # 1. BASE DE DATOS UNIFICADA
   mysql-db:
@@ -48,12 +46,38 @@ services:
         limits:
           cpus: '1.5'
 
+  # 3. EUREKA SERVER (8065)
+  eureka-server:
+    build:
+      context: ../eureka-server
+    container_name: logitrack-eureka
+    restart: on-failure
+    mem_limit: 512m
+    ports:
+      - "8065:8065"
+    environment:
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=70"
+      CONFIG_SERVER_URL: http://config-server:8888
+    depends_on:
+      config-server:
+        condition: service_healthy
+    networks:
+      - logitrack-net
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8065/actuator/health | grep -q UP || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+
   # 3. SEGURIDAD (8080)
   security-service:
     build:
       context: ../security-service
     container_name: logitrack-security
     env_file: ../security-service/.env
+    environment:
+      EUREKA_URL: "http://eureka-server:8065/eureka/"
     ports:
       - "8080:8080"
     depends_on:
@@ -61,6 +85,8 @@ services:
         condition: service_healthy
       config-server:
         condition: service_healthy # CRÍTICO: Cambiado de service_started a service_healthy
+      eureka-server:
+        condition: service_healthy
     networks:
       - logitrack-net
     deploy:
@@ -94,6 +120,8 @@ services:
       context: ../courier-service
     container_name: logitrack-courier
     env_file: ../courier-service/.env
+    environment:
+      EUREKA_URL: "http://eureka-server:8065/eureka/"
     ports:
       - "8082:8082"
     depends_on:
@@ -101,6 +129,8 @@ services:
         condition: service_healthy
       config-server:
         condition: service_healthy # CRÍTICO: Cambiado a service_healthy
+      eureka-server:
+        condition: service_healthy
     networks:
       - logitrack-net
     deploy:
