@@ -139,7 +139,7 @@ services:
           cpus: '2.0'
   # 6. API GATEWAY (8066)
   api-gateway:
-    image: valentinaorrabaliz/logitrack-gateway:1.0.0
+    image: valentinaorrabaliz/logitrack-gateway:2.0.0
     container_name: logitrack-gateway
     restart: on-failure
     mem_limit: 512m
