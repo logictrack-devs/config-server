@@ -70,7 +70,7 @@ services:
 
   # 3. SEGURIDAD (8080)
   security-service:
-    image: valentinaorrabaliz/logitrack-sec:1.0.0
+    image: valentinaorrabaliz/logitrack-sec:2.0.0
     container_name: logitrack-security
     env_file: ../security-service/.env
     environment:
@@ -93,7 +93,7 @@ services:
 
   # 4. ENVÍOS (8081)
   shipment-service:
-    image: valentinaorrabaliz/logitrack-ship:1.0.0
+    image: valentinaorrabaliz/logitrack-ship:2.0.0
     container_name: logitrack-shipment
     env_file: ../shipment-service/.env
     environment:
@@ -139,7 +139,7 @@ services:
           cpus: '2.0'
   # 6. API GATEWAY (8066)
   api-gateway:
-    image: valentinaorrabaliz/logitrack-gateway:1.0.0
+    image: valentinaorrabaliz/logitrack-gateway:2.0.0
     container_name: logitrack-gateway
     restart: on-failure
     mem_limit: 512m
@@ -163,6 +163,16 @@ services:
     networks:
       - logitrack-net
 
+  # 7. FRONTEND - LOGITRACK (3000)
+  frontend:
+    image: valentinaorrabaliz/logitrack-front:2.0.0
+    container_name: logitrack-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - api-gateway
+    networks:
+      - logitrack-net
 
 volumes:
   mysql_data:
